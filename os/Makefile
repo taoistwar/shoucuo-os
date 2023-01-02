@@ -7,7 +7,7 @@ KERNEL_BIN := $(KERNEL_ELF).bin
 # BOARD
 BOARD ?= qemu
 SBI ?= rustsbi
-BOOTLOADER := ../lab0-0-setup-env-run-os1-taoistwar/bootloader/$(SBI)-$(BOARD).bin
+BOOTLOADER := ./bootloader/$(SBI)-$(BOARD).bin
 
 # KERNEL ENTRY
 KERNEL_ENTRY_PA := 0x80200000
@@ -32,7 +32,7 @@ clean:
 	@cargo clean
 
 run: build
-	@/Users/taoistwar/qemu-7.0.0/build/qemu-system-riscv64 \
+	@qemu-system-riscv64 \
 		-machine virt \
 		-nographic \
 		-bios $(BOOTLOADER) \

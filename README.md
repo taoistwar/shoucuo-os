@@ -1,13 +1,5 @@
 # README
 
-## env
+## 目录说明
 
-### rust
-
-```bash
-rustup default nightly
-rustup target add riscv64gc-unknown-none-elf
-cargo install cargo-binutils
-rustup component add llvm-tools-preview
-rustup component add rust-src
-```
+- app：带标准库 Rust 程序，打印"Hello World!"示例

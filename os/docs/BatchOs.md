@@ -1,19 +1,18 @@
 ---
-theme: gaia
-_class: lead
-paginate: true
-backgroundColor: #fff
-backgroundImage: url('https://marp.app/assets/hero-background.svg')
 marp: true
+_class: lead
+theme: gaia
+paginate: true
+backgroundImage: url(./images/hero-background.svg)
 ---
 
 # 批处理系统
 
 - 最早的计算机
-  ![](./../images/original-os.drawio.png)
-- 批处理操作系统
-  - 用软件替代系统操作员的管理和操作能力——操作系统
-  - 当一个应用执行完毕，OS 将下一个要执行的应用加载到内存并执行
+  ![height:300px](./images/original-os.drawio.png)
+- 用软件替代系统操作员的管理和操作能力——操作系统
+- 批处理操作系统是一个单线程程序
+- 当一个应用执行完毕，OS 将下一个要执行的应用加载到内存并执行
 
 ---
 
@@ -26,26 +25,25 @@ marp: true
 - 具体体现
   - 应用程序运行在用户态
   - 操作系统运行在内核态
-- 实现
-  - 实现用户态和内核态的隔离，这需要计算机软件和硬件的共同努力。
+  - 实现用户态和内核态的隔离，需要计算机软件和硬件的共同努力
 
 ---
 
 # 批处理操作系统（邓式鱼）
 
-![](../images/deng-fish.png)
+![](./images/deng-fish.png)
 
 - 批处理：运行完第一个程序后，自动加载第二个程序并运行。
 
 ---
 
-# 批处理 OS 结构图
+# 结构图
 
-![](../docs/images/batch-os-detail.png)
+![bg fit](./images/batch-os-detail.png)
 
 ---
 
-# 批处理 OS 结构说明
+# 结构说明
 
 - 加载多个 app 和 BatchOS 到内存中
 - SBI 完成硬件初始化后，跳转到 BatchOS 中

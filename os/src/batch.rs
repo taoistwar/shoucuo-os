@@ -66,6 +66,9 @@ impl AppManager {
         }
     }
 
+    /**
+     * 将参数 app_id 对应的应用程序的二进制镜像加载到物理内存以 0x80400000 起始的位置
+     */
     unsafe fn load_app(&self, app_id: usize) {
         if app_id >= self.num_app {
             println!("All applications completed!");
@@ -140,10 +143,11 @@ pub fn run_next_app() -> ! {
         fn __restore(cx_addr: usize);
     }
     unsafe {
-        __restore(KERNEL_STACK.push_context(TrapContext::app_init_context(
-            APP_BASE_ADDRESS,
-            USER_STACK.get_sp(),
-        )) as *const _ as usize);
+        // 用户环境的TrapContext，保存在内核的栈中
+        let tc = TrapContext::app_init_context(APP_BASE_ADDRESS, USER_STACK.get_sp());
+        // 内核栈中放入TrapContext对象，返回内核sp
+        let sp = KERNEL_STACK.push_context(tc) as *const _ as usize;
+        __restore(sp);
     }
     panic!("Unreachable in batch::run_current_app!");
 }

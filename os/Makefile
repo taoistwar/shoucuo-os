@@ -22,8 +22,7 @@ $(KERNEL_BIN): kernel
 	@$(OBJCOPY) $(KERNEL_ELF) --strip-all -O binary $@
 
 env:
-	(rustup target list | grep "riscv64gc-unknown-none-elf (installed)") || rustup target add $(TARGET)
-	cargo install cargo-binutils
+	(rustup target list | grep "riscv64gc-unknown-none-elf (installed)") || (rustup target add $(TARGET) && cargo install cargo-binutils)
 
 kernel:
 	@cargo build --release

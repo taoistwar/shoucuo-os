@@ -60,7 +60,7 @@ __restore:
     #        a0为trap_handler返回了TrapContext的地址（内核态的sp）
 
     # sp 置为内核态的
-    mv sp, a0
+    # mv sp, a0
     # now sp->kernel stack(after allocated), sscratch->user stack
 
     # 恢复用户态环境：通用寄存器

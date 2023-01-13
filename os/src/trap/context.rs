@@ -2,10 +2,8 @@ use riscv::register::sstatus::{self, Sstatus, SPP};
 /// Trap Context
 #[repr(C)]
 pub struct TrapContext {
-    /// general registers[0..31]
-    // TODO x0和x4(tp)不需要保存？
+    /// general regs[0..31]
     pub x: [usize; 32],
-    /// 对于 sstatus/sepc 而言，它们会在 Trap 处理的全程有意义（在 Trap 控制流最后 sret 的时候还用到了它们）
     /// CSR sstatus
     pub sstatus: Sstatus,
     /// CSR sepc

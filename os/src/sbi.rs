@@ -5,13 +5,13 @@ const SBI_CONSOLE_PUTCHAR: usize = 1;
 const SBI_CONSOLE_GETCHAR: usize = 2;
 const SBI_SHUTDOWN: usize = 8;
 
-#[inline(always)]
+#[inline(always)] // 總是展開
 fn sbi_call(which: usize, arg0: usize, arg1: usize, arg2: usize) -> usize {
     let mut ret;
     unsafe {
-        core::arch::asm!(
+        core::arch::asm!( // 內嵌彙編
             "li x16, 0",
-            "ecall",
+            "ecall",  // 请求更高级的特权级——M模式，SBI提供的功能
             inlateout("x10") arg0 => ret,
             in("x11") arg1,
             in("x12") arg2,

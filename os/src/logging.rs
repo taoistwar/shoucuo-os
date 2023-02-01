@@ -16,19 +16,16 @@ impl Log for SimpleLogger {
         if !self.enabled(record.metadata()) {
             return;
         }
-        let color = match record.level() {
+        let level = record.level();
+        let args = record.args();
+        let color = match level {
             Level::Error => 31, // Red
             Level::Warn => 93,  // BrightYellow
             Level::Info => 34,  // Blue
             Level::Debug => 32, // Green
             Level::Trace => 90, // BrightBlack
         };
-        println!(
-            "\u{1B}[{}m[{:>5}] {}\u{1B}[0m",
-            color,
-            record.level(),
-            record.args(),
-        );
+        println!("\u{1B}[{}m[{:>5}] {}\u{1B}[z", color, level, args);
     }
     fn flush(&self) {}
 }

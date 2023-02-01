@@ -7,9 +7,10 @@ mod console;
 mod lang_items;
 mod logging;
 mod sbi;
-mod sys_call;
 
 use log::*;
+
+// use crate::sbi::shutdown;
 
 // start 语义项代表了标准库 std 在执行应用程序之前需要进行的一些初始化工作。
 // 由于我们禁用了标准库，编译器也就找不到这项功能的实现了。
@@ -27,7 +28,9 @@ pub fn rust_main() -> ! {
         fn erodata();
         fn sdata();
         fn edata();
+        /// BSS段的起始地址
         fn sbss();
+        /// BSS段的結束地址，不包括
         fn ebss();
         fn boot_stack();
         fn boot_stack_top();
@@ -44,9 +47,10 @@ pub fn rust_main() -> ! {
     );
     error!(".bss [{:#x}, {:#x})", sbss as usize, ebss as usize);
     panic!("Shutdown machine!");
+    // shutdown();
 }
 
-// 清零 .bss 段
+/// 清零 .bss 段
 fn clear_bss() {
     extern "C" {
         fn sbss();

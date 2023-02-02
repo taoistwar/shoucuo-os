@@ -23,7 +23,7 @@ $(KERNEL_BIN): kernel
 
 env:
 	(rustup target list | grep "riscv64gc-unknown-none-elf (installed)") || rustup target add $(TARGET)
-	cargo install cargo-binutils
+	(cargo install --list|grep cargo-binutils) || cargo install cargo-binutils
 
 kernel:
 	@cargo build --release

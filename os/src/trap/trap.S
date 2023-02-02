@@ -1,4 +1,7 @@
+# 开启 alternate macro 模式
 .altmacro
+
+# 宏定义，名称为 SAVE_GP，
 .macro SAVE_GP n
     sd x\n, \n*8(sp)
 .endm
@@ -43,7 +46,7 @@ __all_traps:
     # 由于用户态sp保存于sscratch csr中，取出来存到TrapContext中。
     # read user stack from sscratch and save it on the kernel stack
     csrr t2, sscratch
-    sd t2, 2*8(sp)
+    sd t2, 2*8(sp) # sp(x2)
 
     # 调用 trap_handler 函数，通过设置参数0=ao为内核态sp，内核态sp最近放入的对象是TrapContext，ao就是TrapContext的地址。
     # set input argument of trap_handler(cx: &mut TrapContext)
@@ -54,10 +57,13 @@ __restore:
     # __restore 有两种使用情况：第一次执行的是case1，初始化了sscratch为内核态sp
     # case1: start running app by __restore
     #        启动app时，run_next_app函数中调用。
-    #        设定a0为内核态sp
+    #        设定a0为TrapContxt的起始地址
     # case2: back to U after handling trap；
     #        用户态触发Trap，内核态完成trap_handler后，继续向下执行。最后的sret返回到用户态。
-    #        a0为trap_handler返回了TrapContext的地址（内核态的sp）
+    #        a0为trap_handler返回了TrapContext的地址
+    #
+    # 通過 TrapContext 恢復用戶環境
+
 
     # sp 置为内核态的
     mv sp, a0

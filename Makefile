@@ -10,3 +10,5 @@ build_docker:
 fmt:
 	cd os ; cargo fmt;  cd ..
 
+run:
+	cd os; make run

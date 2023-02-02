@@ -34,6 +34,7 @@ mod sync;
 pub mod syscall;
 pub mod trap;
 
+// 引入外部汇编代码
 global_asm!(include_str!("entry.asm"));
 global_asm!(include_str!("link_app.S"));
 
@@ -44,8 +45,11 @@ fn clear_bss() {
         fn ebss();
     }
     unsafe {
-        core::slice::from_raw_parts_mut(sbss as usize as *mut u8, ebss as usize - sbss as usize)
-            .fill(0);
+        let vec = core::slice::from_raw_parts_mut(
+            sbss as usize as *mut u8,
+            ebss as usize - sbss as usize,
+        );
+        vec.fill(0);
     }
 }
 
@@ -54,7 +58,10 @@ fn clear_bss() {
 pub fn rust_main() -> ! {
     clear_bss();
     println!("[kernel] Welcome!");
+    // 注册 trap 处理
     trap::init();
+    // 打印 app 信息
     batch::init();
+    // 运行 app
     batch::run_next_app();
 }

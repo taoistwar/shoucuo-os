@@ -21,9 +21,12 @@ struct UserStack {
     data: [u8; USER_STACK_SIZE],
 }
 
+// 靜態全局變量，KERNEL_STACK 指針放在.data段中，對應的 KernelStack 對象值放在 .stack 段中。
 static KERNEL_STACK: KernelStack = KernelStack {
     data: [0; KERNEL_STACK_SIZE],
 };
+
+// 靜態全局變量，USER_STACK 指針放在 .data 段中，對應的 UserStack 對象值放在 .stack 段中。
 static USER_STACK: UserStack = UserStack {
     data: [0; USER_STACK_SIZE],
 };
@@ -57,17 +60,21 @@ impl AppManager {
     pub fn print_app_info(&self) {
         println!("[kernel] num_app = {}", self.num_app);
         for i in 0..self.num_app {
+            let current_start = self.app_start[i];
+            let next_start = self.app_start[i + 1];
             println!(
                 "[kernel] app_{} [{:#x}, {:#x})",
-                i,
-                self.app_start[i],
-                self.app_start[i + 1]
+                i, current_start, next_start
             );
         }
     }
 
     /**
-     * 将参数 app_id 对应的应用程序的二进制镜像加载到物理内存以 0x80400000 起始的位置
+     * 将参数 app_id 对应的应用程序的二进制镜像，加载到物理内存位置0x80400000中。
+     *
+     * 说明：
+     *    因为此时时批处理os，每个app编译时，指定的地址都是 0x80400000
+     *
      */
     unsafe fn load_app(&self, app_id: usize) {
         if app_id >= self.num_app {
@@ -76,7 +83,7 @@ impl AppManager {
             crate::board::QEMU_EXIT_HANDLE.exit_success();
         }
         println!("[kernel] Loading app_{}", app_id);
-        // clear icache
+        // clear i-cache
         asm!("fence.i");
         // clear app area
         core::slice::from_raw_parts_mut(APP_BASE_ADDRESS as *mut u8, APP_SIZE_LIMIT).fill(0);
@@ -131,12 +138,16 @@ pub fn print_app_info() {
 /// run next app
 pub fn run_next_app() -> ! {
     let mut app_manager = APP_MANAGER.exclusive_access();
+    // 獲取當前 app
     let current_app = app_manager.get_current_app();
     unsafe {
+        // 加載當前 app
         app_manager.load_app(current_app);
     }
+    // 移動游標，指向下一個 app
     app_manager.move_to_next_app();
     drop(app_manager);
+
     // before this we have to drop local variables related to resources manually
     // and release the resources
     extern "C" {
@@ -145,7 +156,7 @@ pub fn run_next_app() -> ! {
     unsafe {
         // 用户环境的TrapContext，保存在内核的栈中
         let tc = TrapContext::app_init_context(APP_BASE_ADDRESS, USER_STACK.get_sp());
-        // 内核栈中放入TrapContext对象，返回内核sp
+        // 内核栈中放入TrapContext对象，sp為TrapContext的起始地址。
         let sp = KERNEL_STACK.push_context(tc) as *const _ as usize;
         __restore(sp);
     }

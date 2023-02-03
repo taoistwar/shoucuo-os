@@ -21,10 +21,12 @@ struct UserStack {
     data: [u8; USER_STACK_SIZE],
 }
 
+// 每个程序的内核栈，预先分配好了。主要存放TrapContext，用于保存和恢复程序的环境。
 static KERNEL_STACK: [KernelStack; MAX_APP_NUM] = [KernelStack {
     data: [0; KERNEL_STACK_SIZE],
 }; MAX_APP_NUM];
 
+// 每个程序的栈，预先分配好了
 static USER_STACK: [UserStack; MAX_APP_NUM] = [UserStack {
     data: [0; USER_STACK_SIZE],
 }; MAX_APP_NUM];
@@ -68,14 +70,21 @@ pub fn load_apps() {
         fn _num_app();
     }
     let num_app_ptr = _num_app as usize as *const usize;
+    // 程序個數
     let num_app = get_num_app();
-    let app_start = unsafe { core::slice::from_raw_parts(num_app_ptr.add(1), num_app + 1) };
+    let app_start = unsafe {
+        // 指针+1，也就是加类型长度的为数。usize在64位OS时，是64，也就是跳过了 “.quad 3”。
+        let app_0_start = num_app_ptr.add(1);
+        // 把连续的内存，转换成数组
+        core::slice::from_raw_parts(app_0_start, num_app + 1)
+    };
     // clear i-cache first
     unsafe {
         asm!("fence.i");
     }
     // load apps
     for i in 0..num_app {
+        // 程序的起始地址
         let base_i = get_base_i(i);
         // clear region
         (base_i..base_i + APP_SIZE_LIMIT)

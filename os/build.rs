@@ -22,14 +22,20 @@ fn insert_app_data() -> Result<()> {
         .collect();
     apps.sort();
 
+    for (idx, app) in apps.iter().enumerate() {
+        println!("app_{idx}: {app}");
+        writeln!(f, ".global app_{idx}_start\n.global app_{idx}_end")?;
+    }
+    writeln!(f, ".global _num_app\n")?;
+
     writeln!(
         f,
         r#"
-    .align 3
-    .section .data
-    .global _num_app
-_num_app:
-    .quad {}"#,
+# 数据段，代码亦是数据
+.section .data
+.align 3 # 8 bit(2的3次方)对齐
+_num_app: # 标签, 链接是转为符号, 其值位内存地址。
+    .quad {} # 类型大小 64 bit"#,
         apps.len()
     )?;
 
@@ -43,10 +49,8 @@ _num_app:
         writeln!(
             f,
             r#"
-    .section .data
-    .global app_{idx}_start
-    .global app_{idx}_end
 app_{idx}_start:
+    # 将二进制文件导入到当前位置
     .incbin "{TARGET_PATH}{app}.bin"
 app_{idx}_end:"#
         )?;

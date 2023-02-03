@@ -30,6 +30,7 @@ pub fn init() {
         fn __all_traps();
     }
     unsafe {
+        // 设置 Trap 处理的入口
         stvec::write(__all_traps as usize, TrapMode::Direct);
     }
 }

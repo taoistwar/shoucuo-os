@@ -51,17 +51,16 @@ __all_traps:
     call trap_handler
 
 __restore:
-    # __restore 有两种使用情况：第一次执行的是case1，初始化了sscratch为内核态sp
-    # case1: start running app by __restore
-    #        启动app时，run_next_app函数中调用。
-    #        设定a0为内核态sp
-    # case2: back to U after handling trap；
+    # __restore 有两种使用情况：第一次执行的是case1，初始化了sscratch为内核态
+    # case1: __switch(from, dist) 進行切換程序時，包括運行（切換到）第一個程序。
+    #           sp 為內核態值，從 distTaskContext 中恢復的。
+    #           需要注意的是，每个应用都有自己的内核栈，sp位目标应用自己的内核栈。
+    # case2: Trap 处理完成后，返回用户态；
     #        用户态触发Trap，内核态完成trap_handler后，继续向下执行。最后的sret返回到用户态。
     #        a0为trap_handler返回了TrapContext的地址（内核态的sp）
 
+
     # sp 置为内核态的
-    # mv sp, a0
-    # now sp->kernel stack(after allocated), sscratch->user stack
 
     # 恢复用户态环境：通用寄存器
     # restore sstatus/sepc

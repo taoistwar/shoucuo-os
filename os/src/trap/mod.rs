@@ -35,6 +35,13 @@ pub fn init() {
     }
 }
 
+/// 启用内核态时钟中断
+pub fn enable_timer_interrupt() {
+    unsafe {
+        riscv::register::sie::set_stimer();
+    }
+}
+
 #[no_mangle]
 /// handle an interrupt, exception, or system call from user space
 pub fn trap_handler(cx: &mut TrapContext) -> &mut TrapContext {

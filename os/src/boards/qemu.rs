@@ -1,3 +1,7 @@
+//! Constants used in rCore for qemu
+
+pub const CLOCK_FREQ: usize = 12500000;
+
 //ref:: https://github.com/andre-richter/qemu-exit
 use core::arch::asm;
 
@@ -52,7 +56,7 @@ impl QEMUExit for RISCV64 {
         unsafe {
             asm!(
                 "sw {0}, 0({1})",
-                in(reg) code_new, in(reg) self.addr
+                in(reg)code_new, in(reg)self.addr
             );
 
             // For the case that the QEMU exit attempt did not work, transition into an infinite

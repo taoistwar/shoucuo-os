@@ -24,3 +24,6 @@
     - sstatus
     - sepc
   - Trap处理——trap_handler
+    - 系统调用——ecall
+    - S模式中断——任务切换
+- 任务管理

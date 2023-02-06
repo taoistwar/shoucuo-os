@@ -8,7 +8,7 @@ DISASM_TMP := target/$(TARGET)/$(MODE)/asm
 # BOARD
 BOARD		:= qemu
 SBI			?= rustsbi
-BOOTLOADER	:= ./bootloader/$(SBI)-$(BOARD).bin
+BOOTLOADER	:= ../../rCore-Tutorial-v3/bootloader/$(SBI)-$(BOARD).bin
 
 # Building mode argument
 ifeq ($(MODE), release)

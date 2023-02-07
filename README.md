@@ -27,3 +27,9 @@
     - 系统调用——ecall
     - S模式中断——任务切换
 - 任务管理
+
+問題：
+
+1. TrapContext和TaskContext的s0-s11是不是重複了？
+  callee saved registers，这里是switch完直接一路ret到restore。
+  但如果switch完还要做些什么，就必须把存下来。反正是教学用的OS，所以就没必要牺牲这里的通用性换一点性能（猜的）。

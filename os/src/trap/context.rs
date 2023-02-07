@@ -4,8 +4,15 @@ use riscv::register::sstatus::{self, Sstatus, SPP};
 pub struct TrapContext {
     /// general regs[0..31]
     pub x: [usize; 32],
+
+    /// 切换回应用时，sret 使用并修改了 sstatus 寄存器
+    ///     设置权限模式为 CSRs[sstatus].SPP，
+    ///     CSRs[sstatus].SIE 为 CSRs[sstatus].SPIE，
+    ///     CSRs[sstatus].SPIE 为 1，
+    ///     CSRs[sstatus].spp 为 0。
     /// CSR sstatus
     pub sstatus: Sstatus,
+    /// 切换回应用时，sret 会设置 pc 为 CSRs[spec]
     /// CSR sepc
     pub sepc: usize,
 }

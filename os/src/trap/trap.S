@@ -60,7 +60,7 @@ __restore:
     #        a0为trap_handler返回了TrapContext的地址（内核态的sp）
 
 
-    # sp 置为内核态的
+    # sp：每个应用都对应一个内核态的栈，用於存儲應用的環境
 
     # 恢复用户态环境：通用寄存器
     # restore sstatus/sepc

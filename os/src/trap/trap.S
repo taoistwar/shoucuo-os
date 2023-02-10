@@ -5,23 +5,14 @@
 .macro LOAD_GP n
     ld x\n, \n*8(sp)
 .endm
-    .section .text
+    .section .text.trampoline
     .globl __alltraps
     .globl __restore
     .align 2
-__all_traps:
-    # 从用户态触发Trap，因此，当前寄存器的环境是用户态的，所以sp是用户态sp
-    # 为啥 sscartch 是内核态的 sp ？ 因为，在下面的__restore中初始化的。
+__alltraps:
     csrrw sp, sscratch, sp
-    # now sp->kernel stack, sscratch->user stack
-
-    # 在内核态的栈空间中开辟 34*8个字节，用于保存用户态环境
-    # allocate a TrapContext on kernel stack
-    addi sp, sp, -34*8
-
-
-    # 保存用户态通用寄器的值。
-    # save general-purpose registers
+    # now sp->*TrapContext in user space, sscratch->user stack
+    # save other general purpose registers
     sd x1, 1*8(sp)
     # skip sp(x2), we will save it later
     sd x3, 3*8(sp)
@@ -32,46 +23,40 @@ __all_traps:
         SAVE_GP %n
         .set n, n+1
     .endr
-    # we can use t0/t1/t2 freely, because they were saved on kernel stack
-
-
-    # 保存csr（Trap相关信息）
+    # we can use t0/t1/t2 freely, because they have been saved in TrapContext
     csrr t0, sstatus
     csrr t1, sepc
     sd t0, 32*8(sp)
     sd t1, 33*8(sp)
-    # 由于用户态sp保存于sscratch csr中，取出来存到TrapContext中。
-    # read user stack from sscratch and save it on the kernel stack
+    # read user stack from sscratch and save it in TrapContext
     csrr t2, sscratch
     sd t2, 2*8(sp)
-
-    # 调用 trap_handler 函数，通过设置参数0=ao为内核态sp，内核态sp最近放入的对象是TrapContext，ao就是TrapContext的地址。
-    # set input argument of trap_handler(cx: &mut TrapContext)
-    mv a0, sp
-    call trap_handler
+    # load kernel_satp into t0
+    ld t0, 34*8(sp)
+    # load trap_handler into t1
+    ld t1, 36*8(sp)
+    # move to kernel_sp
+    ld sp, 35*8(sp)
+    # switch to kernel space
+    csrw satp, t0
+    sfence.vma
+    # jump to trap_handler
+    jr t1
 
 __restore:
-    # __restore 有两种使用情况：第一次执行的是case1，初始化了sscratch为内核态
-    # case1: __switch(from, dist) 進行切換程序時，包括運行（切換到）第一個程序。
-    #           sp 為內核態值，從 distTaskContext 中恢復的。
-    #           需要注意的是，每个应用都有自己的内核栈，sp位目标应用自己的内核栈。
-    # case2: Trap 处理完成后，返回用户态；
-    #        用户态触发Trap，内核态完成trap_handler后，继续向下执行。最后的sret返回到用户态。
-    #        a0为trap_handler返回了TrapContext的地址（内核态的sp）
-
-
-    # sp：每个应用都对应一个内核态的栈，用於存儲應用的環境
-
-    # 恢复用户态环境：通用寄存器
+    # a0: *TrapContext in user space(Constant); a1: user space token
+    # switch to user space
+    csrw satp, a1
+    sfence.vma
+    csrw sscratch, a0
+    mv sp, a0
+    # now sp points to TrapContext in user space, start restoring based on it
     # restore sstatus/sepc
-    ld t0, 32*8(sp) # sstatus
-    ld t1, 33*8(sp) # sepc
-    ld t2, 2*8(sp) # 用户态sp
+    ld t0, 32*8(sp)
+    ld t1, 33*8(sp)
     csrw sstatus, t0
     csrw sepc, t1
-    # 将 sscratch 置为用户态sp
-    csrw sscratch, t2
-    # restore general-purpuse registers except sp/tp
+    # restore general purpose registers except x0/sp/tp
     ld x1, 1*8(sp)
     ld x3, 3*8(sp)
     .set n, 5
@@ -79,13 +64,6 @@ __restore:
         LOAD_GP %n
         .set n, n+1
     .endr
-
-    # TrapContext 对象已经没有作用，释放
-    # release TrapContext on kernel stack
-    addi sp, sp, 34*8
-
-
-    # 交换前：now sp->kernel stack, sscratch->user stack
-    csrrw sp, sscratch, sp
-    # 交换后：sscratch -> kernel stack，sp -> user stack;
+    # back to user stack
+    ld sp, 2*8(sp)
     sret
